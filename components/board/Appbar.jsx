@@ -1,53 +1,102 @@
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
+import {observer} from "mobx-react-lite";
+import {useEffect, useRef, useState} from "react";
 import {
-  Avatar, Button,
+  Alert,
+  Avatar,
+  Box,
+  Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle, Drawer, Menu, MenuItem, Switch,
+  DialogTitle,
+  Divider,
+  Drawer, FormControl,
+  IconButton, InputAdornment, InputLabel, List, ListItem, ListItemIcon, ListItemText,
+  Menu,
+  MenuItem, OutlinedInput, Switch,
   TextField,
-  Tooltip
+  Toolbar,
+  Tooltip,
+  Typography,
+  useTheme
 } from "@mui/material";
-import MenuIcon from '@mui/icons-material/Menu';
-import {useEffect, useState} from "react";
-import {useTheme} from '@mui/material/styles';
-import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import {useRouter} from "next/router"
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import ListItem from '@mui/material/ListItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import {AppBar, DrawerHeader, drawerWidth} from '../../styles/boardAppbar';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import userState from "../../store/userState";
-import {observer} from "mobx-react-lite";
+import MailIcon from '@mui/icons-material/Mail';
+import SendIcon from '@mui/icons-material/Send';
+
+//components
+import {saveImage} from "../../helpers";
+import {AppBar, DrawerHeader, drawerWidth, MessageBox} from "../../styles/boardAppbar";
+import {cardState, userState} from "../../store";
 import boardState from "../../store/boardState";
+import axios from "axios";
+import {addData, getData, postData} from "../../firebase";
+import {collection, getDocs, updateDoc} from "firebase/firestore";
+import {firebase, storage} from "../../firebase/config";
+import {uploadString, ref} from "firebase/storage";
 
 const BoardAppbar = observer(() => {
   const [iconTitle, setIconTitle] = useState('No user');
-  const [iconSrc, setIconSrc] = useState('');
+  const [iconSrc, setIconSrc] = useState('https://google.com');
   const [open, setOpen] = useState(false);
   const [boardTitle, setBoardTitle] = useState('Без названия');
-  const theme = useTheme();
-  const [openSidebar, setOpenSidebar] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
   const [title, setTitle] = useState("");
+  const [error, setError] = useState(false);
+  const router = useRouter();
+  const theme = useTheme();
+  const [openSidebar, setOpenSidebar] = useState(false);
+  const [message, setMessage] = useState('');
+  const [location, setLocation] = useState('');
+  const [chat, setChat] = useState([]);
+  const [socket, setSocket] = useState(null);
 
-  const handleClickMenu = (event) => {
+  useEffect(() => {
+    // Perform localStorage action
+    setIconTitle(localStorage.getItem("userEmailAthena"));
+    setIconSrc(localStorage.getItem("userAvatarAthena"));
+    setLocation(window.location.pathname.replace('/', ''));
+  }, []);
+
+  // show menu
+  const clickMenu = (event) => {
     setAnchorEl(event.currentTarget);
-  };
-  const handleCloseMenu = () => {
-    setAnchorEl(null);
+    localStorage.removeItem('titleAthena');
   };
 
   const handleDrawerOpen = () => {
+    const sock = new WebSocket('ws://localhost:5000/');
+    if (!socket) {
+      sock.onopen = () => {
+        sock.send(JSON.stringify({
+          username: userState.username,
+          id: location,
+          method: "connection"
+        }))
+      };
+      setSocket(sock);
+    }
+
+
+    sock.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      switch (msg.method) {
+        case 'connection':
+          console.log(`User ${msg.username} connected`);
+          break;
+        case 'message':
+          setChat(prev => [msg, ...prev]);
+          break;
+        default:
+          break;
+      }
+    };
+    console.log(chat)
     setOpenSidebar(true);
   };
 
@@ -55,39 +104,76 @@ const BoardAppbar = observer(() => {
     setOpenSidebar(false);
   };
 
-  const handleClickOpen = () => {
+  // close menu
+  const closeMenu = () => {
+    setAnchorEl(null);
+  };
+
+  // open modal
+  const openModal = () => {
     setOpen(true);
   };
 
-  const handleClose = () => {
+  // close modal
+  const closeModal = () => {
     setOpen(false);
+    setTitle("");
+    setError(false);
   };
 
+  // update title
   const updateTitle = () => {
-    setBoardTitle(title);
-    handleClose();
+    if (title.trim().length > 0 && title.trim().length < 32) {
+      setBoardTitle(title);
+      setTitle("");
+      setError(false);
+      closeModal();
+    } else {
+      setError(true);
+    }
   }
 
-  const handleChange = e => {
+  const typeMessage = e => {
+    setMessage(e.target.value);
+  }
+
+  // change title
+  const changeTitle = e => {
     setTitle(e.target.value);
-  }
-
-  const saveImage = () => {
-    const dataUrl = boardState.board.toDataURL()
-    console.log(dataUrl)
-    const a = document.createElement('a')
-    a.href = dataUrl
-    a.download = boardState.sessionId + ".png"
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
   };
 
-  useEffect(() => {
-    // Perform localStorage action
-    setIconTitle(localStorage.getItem("userEmailAthena"));
-    setIconSrc(localStorage.getItem("userAvatarAthena"))
-  }, []);
+  const sendMessage = () => {
+    const date = new Date();
+    const current = date.getHours() + ':' + date.getMinutes();
+    if (message.trim().length > 0) {
+      socket.send(JSON.stringify({
+        username: userState.username,
+        id: location,
+        method: "message",
+        content: message,
+        date: current,
+        messageID: Date.now()
+      }))
+      setMessage('')
+    }
+  };
+
+  const getSave = async () => {
+    let result = 0;
+    const querySnapshot = await getDocs(collection(firebase, 'projects'));
+    querySnapshot.forEach((doc) => {
+      if (doc.data().code === window.location.pathname.replace('/', '') && doc.data().username === localStorage.getItem('displayNameAthena')) {
+        result++;
+        postData(doc.id, doc.data().code, doc.data().username, doc.data().ownerName, boardTitle).then();
+      }
+    });
+
+    if (result === 0) {
+      axios.get(`http://localhost:5000/users?id=${window.location.pathname.replace('/', '')}`).then(response => {
+        addData(window.location.pathname.replace('/', ''), localStorage.getItem('displayNameAthena'), response.data.owner, boardTitle);
+      })
+    }
+  }
 
   return (
     <Box sx={{flexGrow: 1}}>
@@ -100,7 +186,7 @@ const BoardAppbar = observer(() => {
             </a>
           </Typography>
           <Typography variant="h7" component="div" sx={{marginLeft: '25px', cursor: 'pointer'}}
-                      onClick={handleClickOpen}>
+                      onClick={openModal}>
             {boardTitle}
           </Typography>
           <Box sx={{flexGrow: 1}}/>
@@ -110,7 +196,7 @@ const BoardAppbar = observer(() => {
             aria-controls={openMenu ? 'long-menu' : undefined}
             aria-expanded={openMenu ? 'true' : undefined}
             aria-haspopup="true"
-            onClick={handleClickMenu}
+            onClick={clickMenu}
           >
             <MoreVertIcon sx={{color: 'white'}}/>
           </IconButton>
@@ -121,26 +207,17 @@ const BoardAppbar = observer(() => {
             }}
             anchorEl={anchorEl}
             open={openMenu}
-            onClose={handleCloseMenu}
+            onClose={closeMenu}
           >
-            <MenuItem onClick={handleClose}>Сохранить</MenuItem>
-            <MenuItem onClick={saveImage}>Сохранить в png</MenuItem>
-            <MenuItem onClick={handleClose}>Выйти</MenuItem>
+            <MenuItem onClick={getSave}>Сохранить</MenuItem>
+            <MenuItem onClick={saveImage}>Сохранить в jpeg</MenuItem>
+            <MenuItem>
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              <a href="/">
+                Выйти
+              </a>
+            </MenuItem>
           </Menu>
-          <Box>
-            <Tooltip title={iconTitle} placement="bottom-start">
-              <IconButton
-                size="large"
-                edge="end"
-                aria-label="account of current user"
-                color="inherit"
-              >
-                <Avatar alt={iconTitle}
-                        src={iconSrc}
-                        sx={{width: 34, height: 34}}/>
-              </IconButton>
-            </Tooltip>
-          </Box>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -148,8 +225,16 @@ const BoardAppbar = observer(() => {
             onClick={handleDrawerOpen}
             sx={{...(open && {display: 'none'})}}
           >
-            <MenuIcon sx={{width: 30, height: 30}}/>
+            <MailIcon sx={{width: 25, height: 25}}/>
           </IconButton>
+          <Box>
+            <Tooltip title={iconTitle} placement="bottom-start">
+              <Avatar alt={iconTitle}
+                      src={iconSrc}
+                      sx={{width: 34, height: 34, marginLeft: 3}}/>
+
+            </Tooltip>
+          </Box>
         </Toolbar>
       </AppBar>
 
@@ -170,29 +255,67 @@ const BoardAppbar = observer(() => {
           <IconButton onClick={handleDrawerClose}>
             {theme.direction === 'rtl' ? <ChevronLeftIcon/> : <ChevronRightIcon/>}
           </IconButton>
+          <Typography variant="h6" component="div">
+            Сообщения
+          </Typography>
         </DrawerHeader>
-        <Divider/>
-        <List>
-          {userState.users.map((item) =>
-            <ListItem key={item.index}>
-              <ListItemIcon>
-                <Avatar alt={item.name}
-                        src={item.photo}
-                        sx={{width: 34, height: 34}}/>
-              </ListItemIcon>
-              <ListItemText primary={item.name}/>
-              <Switch edge='end' disabled={item.owner} defaultChecked={item.permission}/>
-            </ListItem>
+        <Divider sx={{marginBottom: 1}}/>
+        <Box sx={{margin: '0 auto'}}>
+          <TextField
+            id="outlined-textarea"
+            label="Сообщение"
+            placeholder="Сообщение"
+            maxRows={3}
+            type='text'
+            multiline
+            size='small'
+            sx={{width: '18rem'}}
+            value={message}
+            onChange={typeMessage}
+          />
+          <IconButton color='primary' onClick={sendMessage}>
+            <SendIcon/>
+          </IconButton>
+        </Box>
+        <Box sx={{
+          width: '20.3rem',
+          margin: '0 auto',
+          marginTop: 1.5,
+          height: '800px',
+          overflowY: 'scroll',
+          scrollbarWidth: 'none',
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          }
+        }}>
+          {chat.map(msg =>
+            <MessageBox key={msg.messageID}>
+              <Box sx={{display: 'flex', flexDirection: 'row'}}>
+                <Typography flexWrap='wrap' whiteSpace='pre-wrap' sx={{wordWrap: 'break-word'}} fontSize='13px'
+                            fontWeight='bold'>
+                  {msg.username}
+                </Typography>
+                <Typography flexWrap='wrap' whiteSpace='pre-wrap' sx={{wordWrap: 'break-word', marginLeft: '5px'}}
+                            fontSize='13px'>
+                  {msg.date}
+                </Typography>
+              </Box>
+              <Typography flexWrap='wrap' whiteSpace='pre-wrap' sx={{wordWrap: 'break-word', width: '20.3rem'}}
+                          fontSize='15px'>
+                {msg.content}
+              </Typography>
+            </MessageBox>
           )}
-        </List>
+        </Box>
       </Drawer>
 
       {/*Dialog form*/}
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={open} onClose={closeModal}>
         <DialogTitle>Название проекта</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Напишите название проекта. <br/>Название должно состоять из: <strong>букв</strong> или <strong>цифр</strong>
+            Название должно состоять из: <strong>букв</strong> или <strong>цифр</strong>.
+            <br/>Количество символов не должно быть не больше 32
           </DialogContentText>
           <TextField
             autoFocus
@@ -203,13 +326,17 @@ const BoardAppbar = observer(() => {
             fullWidth
             variant="standard"
             value={title}
-            onChange={handleChange}
+            onChange={changeTitle}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Отмена</Button>
+          <Button onClick={closeModal}>Отмена</Button>
           <Button onClick={updateTitle}>Изменить</Button>
         </DialogActions>
+        {/*  Error*/}
+        {error
+          ? <Alert severity="error">Количество символов должно быть от <strong>0</strong> до <strong>32</strong></Alert>
+          : <div></div>}
       </Dialog>
     </Box>
   )

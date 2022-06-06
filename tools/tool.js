@@ -7,13 +7,13 @@ class Tool {
     this.resetEvents();
   };
 
-  set fillColor(color) {
-    this.ctx.fillStyle = color;
-  };
-
-  set strokeColor(color) {
-    this.ctx.strokeStyle = color;
-  };
+  // set fillColor(color) {
+  //   this.ctx.fillStyle = color;
+  // };
+  //
+  // set strokeColor(color) {
+  //   this.ctx.strokeStyle = color;
+  // };
 
   set lineWidth(color) {
     this.ctx.lineWidth = color;

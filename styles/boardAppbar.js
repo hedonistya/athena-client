@@ -3,6 +3,7 @@ import MuiAppBar from "@mui/material/AppBar";
 
 export const drawerWidth = 350;
 
+// custom component style
 export const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
 })(({theme, open}) => ({
@@ -28,3 +29,10 @@ export const DrawerHeader = styled('div')(({theme}) => ({
   ...theme.mixins.toolbar,
   justifyContent: 'flex-start',
 }));
+
+export const MessageBox = styled('div')(({theme}) => ({
+  display: 'flex',
+  flexWrap: 'wrap',
+  color: 'black',
+  marginBottom: 10,
+}))

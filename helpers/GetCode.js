@@ -8,11 +8,12 @@ const resultLength = 10;
  */
 const getCode = () => {
   let result = '';
-
   let codeLength = symbols.length;
+
   for (let i = 0; i < resultLength; i++) {
     result += symbols.charAt(Math.floor(Math.random() * codeLength));
   }
+  localStorage.setItem("codeAthena", result);
 
   return result;
 }

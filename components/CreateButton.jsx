@@ -1,32 +1,24 @@
-import * as React from 'react';
-import Box from '@mui/material/Box';
 import AddIcon from '@mui/icons-material/Add';
-import {getCode} from "../helpers";
 import {useRouter} from "next/router";
-import {Fab} from "@mui/material";
-import userState from "../store/userState";
-import {observer} from "mobx-react-lite";
+import {Fab, Box} from "@mui/material";
 
-const CreateButton = observer(() => {
+// components
+import {getCode} from "../helpers";
+import axios from "axios";
+
+const CreateButton = () => {
   const router = useRouter();
 
+  // get page and send request to server
   const getPage = () => {
     const test = getCode();
 
-    userState.users.push({
-      name: localStorage.getItem("displayNameAthena"),
-      photo: localStorage.getItem("userAvatarAthena"),
-      owner: true,
-      permission: true,
-      code: test,
-      boardTitle: 'Без названия',
-    });
+    axios.post(`http://localhost:5000/users?id=${test}`, {owner: localStorage.getItem('displayNameAthena')})
+      .then(response => console.log(response.data));
 
     router.push(`/${test}`).then(() => {
-      console.log(`Routing to -> ${test}`);
-      console.log(userState.users);
     });
-  }
+  };
 
   return (
     <Box>
@@ -38,6 +30,6 @@ const CreateButton = observer(() => {
       </Fab>
     </Box>
   );
-});
+};
 
 export default CreateButton;

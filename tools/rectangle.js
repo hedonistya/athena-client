@@ -1,4 +1,6 @@
 import Tool from "./tool";
+import boardState from "../store/boardState";
+import {paintState} from "../store";
 
 class Rectangle extends Tool {
   constructor(board, socket, id) {
@@ -8,23 +10,23 @@ class Rectangle extends Tool {
   };
 
   listen() {
-    this.board.onmousedown = this.mouseDownHandler.bind(this);
-    this.board.onmouseup = this.mouseUpHandler.bind(this);
-    this.board.onmousemove = this.mouseMoveHandler.bind(this);
+    this.board.onmousedown = this.mouseDownListener.bind(this);
+    this.board.onmouseup = this.mouseUpListener.bind(this);
+    this.board.onmousemove = this.mouseMoveListener.bind(this);
   };
 
-  mouseDownHandler(e) {
+  // check mouse down
+  mouseDownListener(event) {
     this.mouseDown = true;
-
-    this.positionX = e.pageX - e.target.offsetLeft;
-    this.positionY = e.pageY - e.target.offsetTop;
-
+    this.positionX = event.pageX - event.target.offsetLeft;
+    this.positionY = event.pageY - event.target.offsetTop;
     this.ctx.beginPath();
-    this.saved = this.board.toDataURL()
+    this.saved = this.board.toDataURL();
   };
 
-  mouseUpHandler(e) {
-    this.mouseDown = false
+  // check mouse up
+  mouseUpListener() {
+    this.mouseDown = false;
     this.socket.send(JSON.stringify({
       method: 'draw',
       id: this.id,
@@ -34,42 +36,58 @@ class Rectangle extends Tool {
         y: this.positionY,
         width: this.width,
         height: this.height,
-        color: this.ctx.fillStyle
+        color: paintState.fill,
+        strokeColor: paintState.stroke,
+        strokeWidth: paintState.strokeWidth,
+        fillColor: paintState.figureColor
       }
-    }))
+    }));
   };
 
-  mouseMoveHandler(e) {
+  // check mouse move
+  mouseMoveListener(event) {
     if (this.mouseDown) {
-      let currentPositionX = e.pageX - e.target.offsetLeft;
-      let currentPositionY = e.pageY - e.target.offsetTop;
-
+      let currentPositionX = event.pageX - event.target.offsetLeft;
+      let currentPositionY = event.pageY - event.target.offsetTop;
       this.width = currentPositionX - this.positionX;
       this.height = currentPositionY - this.positionY;
-
       this.paint(this.positionX, this.positionY, this.width, this.height);
     }
   };
 
+  // draw line client
   paint(x, y, width, height) {
     const img = new Image();
+    this.ctx.fillStyle = paintState.fill;
+    this.ctx.strokeStyle = paintState.stroke;
+    this.ctx.lineWidth = paintState.strokeWidth;
+
     img.src = this.saved;
     img.onload = () => {
       this.ctx.clearRect(0, 0, this.board.width, this.board.height);
       this.ctx.drawImage(img, 0, 0, this.board.width, this.board.height);
       this.ctx.beginPath();
       this.ctx.rect(x, y, width, height);
-      this.ctx.fill();
       this.ctx.stroke();
+
+      if (paintState.figureColor){
+        this.ctx.fill();
+      }
     }
   };
 
-  static staticPaint(ctx, x, y, w, h, color) {
-    ctx.fillStyle = color
-    ctx.beginPath()
-    ctx.rect(x, y, w, h)
-    ctx.fill()
-    ctx.stroke()
+  // draw line server
+  static staticPaint(ctx, x, y, w, h, color, strokeColor, strokeWidth, fillColor) {
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = strokeWidth;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.rect(x, y, w, h);
+    ctx.stroke();
+
+    if (fillColor){
+      ctx.fill();
+    }
   }
 }
 

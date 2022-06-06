@@ -9,11 +9,10 @@ import {Avatar, CssBaseline, Tooltip, useScrollTrigger} from "@mui/material";
 import PropTypes from "prop-types";
 import {Search, SearchIconWrapper, StyledInputBase} from "../styles/appbar";
 import {useEffect, useState} from "react";
-import Link from "next/link";
 import Fuse from "fuse.js";
 import cardState from "../store/cardState";
 import {observer} from "mobx-react-lite";
-import authWithGoogleProvider from "../firebase/authRequest";
+import {authWithGoogleProvider} from "../firebase/";
 
 // Scroll navbar property
 const ElevationScroll = (props) => {
@@ -42,7 +41,7 @@ const Appbar = observer((props) => {
   const fuse = new Fuse(cardState.filterCard, {
     keys: [
       'title',
-      'author'
+      'ownerName'
     ]
   });
   const results = fuse.search(query);

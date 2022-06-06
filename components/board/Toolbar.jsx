@@ -1,28 +1,46 @@
 import React from 'react';
+import {Button, Divider, FormControlLabel, IconButton, Slider, Switch, Tooltip} from "@mui/material";
+import {observer} from "mobx-react-lite";
+
+//components
 import {BoxToolbar} from "../../styles/toolbar";
-import {Button, Divider, IconButton, Slider} from "@mui/material";
-import UndoIcon from "@mui/icons-material/Undo";
-import RedoIcon from "@mui/icons-material/Redo";
 import paintState from "../../store/paintState";
 import boardState from "../../store/boardState";
 
-const Toolbar = () => {
+const Toolbar = observer(() => {
+  // stroke width listener
+  const setLineWidth = (event) => {
+    paintState.setStrokeWidth(event.target.value);
+  };
+
+  const getClear = () => {
+    const socket = new WebSocket('ws://localhost:5000/');
+    socket.onopen = () => {
+      socket.send(JSON.stringify({
+        method: 'clear',
+        id: window.location.pathname.replace('/', '')
+      }));
+    }
+  };
+
   return (
     <>
       <BoxToolbar>
-        <IconButton onClick={() => boardState.undo()}>
-          <UndoIcon/>
-        </IconButton>
-        <IconButton onClick={() => boardState.redo()}>
-          <RedoIcon/>
-        </IconButton>
-        <Divider orientation="vertical" variant="middle" flexItem sx={{marginRight: 1}}/>
-        <p >Ширина обводки</p>
-        <Slider defaultValue={1} min={1} max={30} aria-label="Default" valueLabelDisplay="auto" sx={{width: 150, marginLeft: 2}} onChange={e => paintState.setLineWidth(e.target.value)}/>
-        <Button sx={{marginLeft: 1}}>Очистить</Button>
+        <p>Ширина обводки</p>
+        <Slider defaultValue={paintState.strokeWidth} min={1} max={30} aria-label="Default" valueLabelDisplay="auto"
+                sx={{width: 150, marginLeft: 2}} onChange={e => setLineWidth(e)}/>
+        <Button sx={{marginLeft: 1}} onClick={getClear}>Очистить</Button>
+        <FormControlLabel
+          value="start"
+          control={<Switch color="primary"/>}
+          label="Заливка"
+          labelPlacement="start"
+          checked={paintState.figureColor}
+          onChange={() => paintState.setFigureColor(!paintState.figureColor)}
+        />
       </BoxToolbar>
     </>
   );
-};
+});
 
 export default Toolbar;

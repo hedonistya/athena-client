@@ -1,5 +1,6 @@
 import {styled} from "@mui/material/styles";
 
+// custom component style
 export const BoxToolbar = styled('div')(({theme}) => ({
   display: 'flex',
   width: '100%',

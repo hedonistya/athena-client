@@ -3,7 +3,6 @@ import Head from 'next/head';
 // Components
 import MainLayout from "../layouts/MainLayout";
 
-
 const Home = () => {
   return (
     <>

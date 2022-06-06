@@ -1,23 +1,22 @@
-import {getAuth, signInWithPopup, GoogleAuthProvider} from "firebase/auth";
+import {signInWithPopup, GoogleAuthProvider} from "firebase/auth";
 
 // components
-import {firebaseGetAuth} from './index.config'
-import userState from "../store/userState";
+import {firebaseGetAuth} from './config'
+import {userState} from "../store";
 
 const provider = new GoogleAuthProvider();
 
-// todo: auth with Google provider
 /**
  * Auth with Google provider and add data to firebase
  * @return Set username to local storage
  */
 const authWithGoogleProvider = () => {
   signInWithPopup(firebaseGetAuth, provider).then(result => {
-    const credential = GoogleAuthProvider.credentialFromResult(result);
 
     localStorage.setItem("displayNameAthena", result.user.displayName);
     localStorage.setItem("userEmailAthena", result.user.email);
     localStorage.setItem("userAvatarAthena", result.user.photoURL);
+    userState.setUsername(localStorage.getItem('displayNameAthena'));
 
     window.location.reload(false);
   }).catch(error => {

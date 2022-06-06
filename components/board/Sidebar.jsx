@@ -6,13 +6,15 @@ import ChangeHistoryIcon from '@mui/icons-material/ChangeHistory';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import PaletteIcon from '@mui/icons-material/Palette';
-import {Box, IconButton, Paper} from "@mui/material";
+import {Box, IconButton, Paper, Tooltip} from "@mui/material";
 import {useState} from "react";
+import {CompactPicker} from "react-color";
+import BorderColorIcon from '@mui/icons-material/BorderColor';
+
+//components
 import paintState from "../../store/paintState";
 import boardState from "../../store/boardState";
 import {Brush, Circle, Eraser, Rectangle, Triangle} from "../../tools";
-import {CompactPicker} from "react-color";
-import BorderColorIcon from '@mui/icons-material/BorderColor';
 
 const BoardSidebar = () => {
   const [viewBottom, setViewBottom] = useState('brush');
@@ -23,6 +25,7 @@ const BoardSidebar = () => {
   const [iconStrokeColor, setIconStrokeColor] = useState("");
   const [iconFillColor, setIconFillColor] = useState("");
 
+  // draw button listener
   const handleChangeBottom = (event, nextView) => {
     console.log(event)
     if (nextView !== null) {
@@ -33,7 +36,8 @@ const BoardSidebar = () => {
         case 'eraser':
           paintState.setPaint(new Eraser(boardState.board, boardState.socket, boardState.sessionId));
           setStrokeColor("#ffffff");
-          setIconStrokeColor("#000")
+          setIconStrokeColor("#000");
+          paintState.setStrokeColor('#fff');
           break;
         case 'circle':
           paintState.setPaint(new Circle(boardState.board, boardState.socket, boardState.sessionId));
@@ -52,6 +56,7 @@ const BoardSidebar = () => {
     }
   };
 
+  // fill color listener
   const handleFillColorChange = ({hex}) => {
     if (hex === '#ffffff') {
       setIconFillColor("#000");
@@ -59,11 +64,12 @@ const BoardSidebar = () => {
       setIconFillColor("");
     }
 
+    setFillPicker(false);
     paintState.setFillColor(hex);
-
     setFillColor(hex);
   };
 
+  // stroke color listener
   const handleStrokeColorChange = ({hex}) => {
     if (hex === '#ffffff') {
       setIconStrokeColor("#000");
@@ -71,15 +77,18 @@ const BoardSidebar = () => {
       setIconStrokeColor("");
     }
 
+    setStrokePicker(false);
     paintState.setStrokeColor(hex);
-
     setStrokeColor(hex);
   };
 
+  // toggle fill color picker
   const onToggleFillColorPicker = () => {
     setStrokePicker(false);
     setFillPicker(!fillPicker);
   }
+
+  // toggle stroke color picker
   const onToggleStrokeColorPicker = () => {
     setFillPicker(false);
     setStrokePicker(!strokePicker);
@@ -92,16 +101,20 @@ const BoardSidebar = () => {
         sx={{
           display: 'flex',
           flexWrap: 'wrap',
-          flexDirection: 'column'
+          flexDirection: 'column',
         }}
         className='sidebar'
       >
-        <IconButton onClick={onToggleStrokeColorPicker}>
-          <BorderColorIcon sx={{color: strokeColor, stroke: iconStrokeColor}}/>
-        </IconButton>
-        <IconButton onClick={onToggleFillColorPicker}>
-          <PaletteIcon sx={{color: fillColor, stroke: iconFillColor}}/>
-        </IconButton>
+        <Tooltip title="Обводка" placement="right">
+          <IconButton onClick={onToggleStrokeColorPicker}>
+            <BorderColorIcon sx={{color: strokeColor, stroke: iconStrokeColor}}/>
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Заливка" placement="right">
+          <IconButton onClick={onToggleFillColorPicker}>
+            <PaletteIcon sx={{color: fillColor, stroke: iconFillColor}}/>
+          </IconButton>
+        </Tooltip>
 
         {strokePicker && viewBottom !== 'eraser' && (
           <Box sx={{position: 'absolute', left: 50}}>
@@ -128,19 +141,29 @@ const BoardSidebar = () => {
           onChange={handleChangeBottom}
         >
           <ToggleButton value="brush" aria-label="Кисть">
-            <BrushIcon/>
+            <Tooltip title="Кисть" placement="right">
+              <BrushIcon/>
+            </Tooltip>
           </ToggleButton>
           <ToggleButton value="eraser" aria-label="Ластик">
-            <AutoFixOffIcon/>
+            <Tooltip title="Ластик" placement="right">
+              <AutoFixOffIcon/>
+            </Tooltip>
           </ToggleButton>
           <ToggleButton value="circle" aria-label="Круг">
-            <RadioButtonUncheckedIcon/>
+            <Tooltip title="Круг" placement="right">
+              <RadioButtonUncheckedIcon/>
+            </Tooltip>
           </ToggleButton>
           <ToggleButton value="triangle" aria-label="Треугольник">
-            <ChangeHistoryIcon/>
+            <Tooltip title="Треугольник" placement="right">
+              <ChangeHistoryIcon/>
+            </Tooltip>
           </ToggleButton>
           <ToggleButton value="rectangle" aria-label="Прямоугольник">
-            <CheckBoxOutlineBlankIcon/>
+            <Tooltip title="Прямоугольник" placement="right">
+              <CheckBoxOutlineBlankIcon/>
+            </Tooltip>
           </ToggleButton>
         </ToggleButtonGroup>
       </Paper>

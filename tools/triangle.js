@@ -1,4 +1,6 @@
 import Tool from "./tool";
+import boardState from "../store/boardState";
+import {paintState} from "../store";
 
 class Triangle extends Tool {
   constructor(board, socket, id) {
@@ -8,43 +10,62 @@ class Triangle extends Tool {
   };
 
   listen() {
-    this.board.onmousedown = this.mouseDownHandler.bind(this);
-    this.board.onmouseup = this.mouseUpHandler.bind(this);
-    this.board.onmousemove = this.mouseMoveHandler.bind(this);
+    this.board.onmousedown = this.mouseDownListener.bind(this);
+    this.board.onmouseup = this.mouseUpListener.bind(this);
+    this.board.onmousemove = this.mouseMoveListener.bind(this);
   };
 
-  mouseDownHandler(e) {
+  // check mouse down
+  mouseDownListener(event) {
     this.mouseDown = true;
-
-    this.positionX = e.pageX - e.target.offsetLeft;
-    this.positionY = e.pageY - e.target.offsetTop;
-
+    this.positionX = event.pageX - event.target.offsetLeft;
+    this.positionY = event.pageY - event.target.offsetTop;
     this.ctx.beginPath();
-    this.ctx.moveTo(this.positionX, this.positionY);
     this.saved = this.board.toDataURL();
-
   };
 
-  mouseUpHandler(e) {
+  // check mouse up
+  mouseUpListener() {
     this.mouseDown = false;
+    this.socket.send(JSON.stringify({
+      method: 'draw',
+      id: this.id,
+      figure: {
+        type: 'triangle',
+        x: this.positionX,
+        y: this.positionY,
+        x2: this.x2,
+        y2: this.y2,
+        x3: this.x3,
+        y3: this.y3,
+        color: paintState.fill,
+        strokeColor: paintState.stroke,
+        strokeWidth: paintState.strokeWidth,
+        fillColor: paintState.figureColor
+      }
+    }));
   };
 
-  mouseMoveHandler(e) {
+  // check mouse move
+  mouseMoveListener(event) {
     if (this.mouseDown) {
-      let currentPositionX = e.pageX - e.target.offsetLeft;
-      let currentPositionY = e.pageY - e.target.offsetTop;
-
+      let currentPositionX = event.pageX - event.target.offsetLeft;
+      let currentPositionY = event.pageY - event.target.offsetTop;
       this.x2 = currentPositionX;
       this.y2 = currentPositionY + 16;
       this.x3 = this.positionX - this.x2 + this.positionX;
       this.y3 = currentPositionY + 16;
-
       this.paint(this.positionX, this.positionY, this.x2, this.y2, this.x3, this.y3);
     }
   };
 
+  // draw line client
   paint(x, y, x2, y2, x3, y3) {
     const img = new Image();
+    this.ctx.fillStyle = paintState.fill;
+    this.ctx.strokeStyle = paintState.stroke;
+    this.ctx.lineWidth = paintState.strokeWidth;
+
     img.src = this.saved;
     img.onload = () => {
       this.ctx.clearRect(0, 0, this.board.width, this.board.height);
@@ -54,22 +75,30 @@ class Triangle extends Tool {
       this.ctx.lineTo(x2, y2);
       this.ctx.lineTo(x3, y3);
       this.ctx.closePath();
-      this.ctx.fill();
       this.ctx.stroke();
+
+      if (paintState.figureColor){
+        this.ctx.fill();
+      }
     }
   };
 
-  static staticPaint(ctx, x, y, x2, y2, x3, y3, color) {
+  // draw line server
+  static staticPaint(ctx, x, y, x2, y2, x3, y3, color, strokeColor, strokeWidth, fillColor) {
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = strokeWidth;
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.moveTo(x, y);
     ctx.lineTo(x2, y2);
     ctx.lineTo(x3, y3);
     ctx.closePath();
-    ctx.fill();
     ctx.stroke();
+
+    if (fillColor){
+      ctx.fill();
+    }
   };
 }
-
 
 export default Triangle;

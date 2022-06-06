@@ -1,5 +1,6 @@
 import Brush from "./brush";
 import Tool from "./tool";
+import {paintState} from "../store";
 
 class Eraser extends Tool {
   constructor(board, socket, id) {
@@ -8,45 +9,50 @@ class Eraser extends Tool {
   };
 
   listen() {
-    this.board.onmousedown = this.mouseDownHandler.bind(this);
-    this.board.onmouseup = this.mouseUpHandler.bind(this);
-    this.board.onmousemove = this.mouseMoveHandler.bind(this);
+    this.board.onmousedown = this.mouseDownListener.bind(this);
+    this.board.onmouseup = this.mouseUpListener.bind(this);
+    this.board.onmousemove = this.mouseMoveListener.bind(this);
   };
 
-  mouseDownHandler(e) {
+  // check mouse down
+  mouseDownListener(event) {
     this.mouseDown = true;
-
     this.ctx.beginPath();
-    this.ctx.moveTo(e.pageX - e.target.offsetLeft, e.pageY - e.target.offsetTop)
+    this.ctx.moveTo(event.pageX - event.target.offsetLeft, event.pageY - event.target.offsetTop);
   };
 
-  mouseUpHandler(e) {
+  // check mouse up
+  mouseUpListener() {
     this.mouseDown = false;
-
     this.socket.send(JSON.stringify({
       method: 'draw',
       id: this.id,
       figure: {
         type: 'finish',
       }
-    }))
+    }));
   };
 
-  mouseMoveHandler(e) {
+  // check mouse move
+  mouseMoveListener(event) {
     if (this.mouseDown) {
       this.socket.send(JSON.stringify({
         method: 'draw',
         id: this.id,
         figure: {
           type: 'eraser',
-          x: e.pageX - e.target.offsetLeft,
-          y: e.pageY - e.target.offsetTop
+          x: event.pageX - event.target.offsetLeft,
+          y: event.pageY - event.target.offsetTop,
+          lineWidth: paintState.strokeWidth
         }
-      }))
+      }));
     }
   };
-  static eraserPaint(ctx, x, y) {
+
+  // draw line server
+  static eraserPaint(ctx, x, y, lineWidth) {
     ctx.strokeStyle = "#fff";
+    ctx.lineWidth = lineWidth;
     ctx.lineTo(x, y);
     ctx.stroke();
   };
