@@ -108,7 +108,7 @@ const Board = observer(() => {
 
   // get action
   const mouseDownHandler = () => {
-    axios.post(`http://localhost:5000/image?id=${location}`, {img: boardRef.current.toDataURL()})
+    axios.post(`http://45.90.35.46:5000/image?id=${location}`, {img: boardRef.current.toDataURL()})
       .then(response => console.log(response.data))
   };
 

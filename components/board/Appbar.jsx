@@ -151,7 +151,7 @@ const BoardAppbar = observer(() => {
     });
 
     if (result === 0) {
-      axios.get(`http://localhost:5000/users?id=${window.location.pathname.replace('/', '')}`).then(response => {
+      axios.get(`http://45.90.35.46:5000/users?id=${window.location.pathname.replace('/', '')}`).then(response => {
         addData(window.location.pathname.replace('/', ''), localStorage.getItem('displayNameAthena'), response.data.owner, boardTitle);
       })
     }
