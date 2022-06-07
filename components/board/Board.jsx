@@ -18,13 +18,13 @@ const Board = observer(() => {
     boardState.setBoard(boardRef.current);
     setLocation(window.location.pathname.replace('/', ''));
 
-    axios.get(`http://localhost:5000/users?id=${window.location.pathname.replace('/', '')}`).then(response => {
+    axios.get(`http://45.90.35.46:5000/users?id=${window.location.pathname.replace('/', '')}`).then(response => {
       setOwner(response.data.owner);
       console.log(owner);
     })
 
     let ctx = boardRef.current.getContext('2d')
-    axios.get(`http://localhost:5000/image?id=${window.location.pathname.replace('/', '')}`)
+    axios.get(`http://45.90.35.46:5000/image?id=${window.location.pathname.replace('/', '')}`)
       .then(response => {
         const img = new Image()
         img.src = response.data
@@ -38,7 +38,7 @@ const Board = observer(() => {
   useEffect(() => {
     userState.setUsername(localStorage.getItem("displayNameAthena"));
     if (userState.username) {
-      const socket = new WebSocket('ws://localhost:5000/');
+      const socket = new WebSocket('ws://45.90.35.46:5000/');
       setModal(false);
       boardState.setSocket(socket);
       boardState.setSessionId(location);

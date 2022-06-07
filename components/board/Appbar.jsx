@@ -50,7 +50,7 @@ const BoardAppbar = observer(() => {
 
   // show message
   const handleDrawerOpen = () => {
-    const sock = new WebSocket('ws://localhost:5000/');
+    const sock = new WebSocket('ws://45.90.35.46:5000/');
     if (!socket) {
       sock.onopen = () => {
         sock.send(JSON.stringify({

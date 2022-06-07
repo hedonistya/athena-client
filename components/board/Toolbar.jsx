@@ -14,7 +14,7 @@ const Toolbar = observer(() => {
 
   // clear canvas
   const getClear = () => {
-    const socket = new WebSocket('ws://localhost:5000/');
+    const socket = new WebSocket('ws://45.90.35.46:5000/');
     socket.onopen = () => {
       socket.send(JSON.stringify({
         method: 'clear',
