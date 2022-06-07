@@ -1,11 +1,10 @@
 import React from 'react';
-import {Button, Divider, FormControlLabel, IconButton, Slider, Switch, Tooltip} from "@mui/material";
+import {Button, FormControlLabel, Slider, Switch} from "@mui/material";
 import {observer} from "mobx-react-lite";
 
 //components
 import {BoxToolbar} from "../../styles/toolbar";
-import paintState from "../../store/paintState";
-import boardState from "../../store/boardState";
+import {paintState} from "../../store";
 
 const Toolbar = observer(() => {
   // stroke width listener
@@ -13,6 +12,7 @@ const Toolbar = observer(() => {
     paintState.setStrokeWidth(event.target.value);
   };
 
+  // clear canvas
   const getClear = () => {
     const socket = new WebSocket('ws://localhost:5000/');
     socket.onopen = () => {

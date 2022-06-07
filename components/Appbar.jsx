@@ -1,18 +1,16 @@
-import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
 import SearchIcon from '@mui/icons-material/Search';
-import {Avatar, CssBaseline, Tooltip, useScrollTrigger} from "@mui/material";
+import {
+  AppBar, Avatar, Box, CssBaseline, IconButton, Toolbar, Tooltip, Typography, useScrollTrigger
+} from "@mui/material";
 import PropTypes from "prop-types";
-import {Search, SearchIconWrapper, StyledInputBase} from "../styles/appbar";
-import {useEffect, useState} from "react";
+import {cloneElement, useEffect, useState} from "react";
 import Fuse from "fuse.js";
-import cardState from "../store/cardState";
 import {observer} from "mobx-react-lite";
+
+// components
 import {authWithGoogleProvider} from "../firebase/";
+import {cardState} from "../store";
+import {Search, SearchIconWrapper, StyledInputBase} from "../styles/appbar";
 
 // Scroll navbar property
 const ElevationScroll = (props) => {
@@ -23,7 +21,7 @@ const ElevationScroll = (props) => {
     target: window ? window() : undefined,
   });
 
-  return React.cloneElement(children, {
+  return cloneElement(children, {
     elevation: trigger ? 4 : 0,
   });
 };

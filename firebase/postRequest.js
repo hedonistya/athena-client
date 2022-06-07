@@ -1,8 +1,18 @@
 import {updateDoc, doc} from "firebase/firestore";
-import {firebase, storage} from "./config";
 import {ref, uploadString} from "firebase/storage";
-import boardState from "../store/boardState";
 
+// components
+import {boardState} from "../store";
+import {firebase, storage} from "./config";
+
+/**
+ * Update data in firebase
+ * @param id
+ * @param code
+ * @param username
+ * @param ownerName
+ * @param title
+ */
 const postData = async (id, code, username, ownerName, title) => {
   const update = doc(firebase, 'projects', id);
   await updateDoc(update, {

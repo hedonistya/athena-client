@@ -4,8 +4,8 @@ import {useRouter} from "next/router";
 
 // components
 import {Card, ContainerContent} from "../styles/content";
-import cardState from "../store/cardState";
 import {deleteData} from "../firebase";
+import {cardState} from "../store";
 
 const Content = observer(() => {
   const router = useRouter();

@@ -12,9 +12,8 @@ import {CompactPicker} from "react-color";
 import BorderColorIcon from '@mui/icons-material/BorderColor';
 
 //components
-import paintState from "../../store/paintState";
-import boardState from "../../store/boardState";
 import {Brush, Circle, Eraser, Rectangle, Triangle} from "../../tools";
+import {paintState, boardState} from "../../store";
 
 const BoardSidebar = () => {
   const [viewBottom, setViewBottom] = useState('brush');

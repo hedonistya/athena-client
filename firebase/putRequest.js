@@ -1,8 +1,17 @@
-import {doc, addDoc, collection} from "firebase/firestore";
-import {firebase, storage} from "./config";
+import {addDoc, collection} from "firebase/firestore";
 import {ref, uploadString} from "firebase/storage";
-import boardState from "../store/boardState";
 
+// components
+import {boardState} from "../store";
+import {firebase, storage} from "./config";
+
+/**
+ * Add data in firebase
+ * @param code
+ * @param username
+ * @param ownerName
+ * @param title
+ */
 const addData = async (code, username, ownerName, title) => {
   await addDoc(collection(firebase, 'projects'), {
     title: title,

@@ -1,60 +1,39 @@
 import {observer} from "mobx-react-lite";
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useState} from "react";
 import {
-  Alert,
-  Avatar,
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Divider,
-  Drawer, FormControl,
-  IconButton, InputAdornment, InputLabel, List, ListItem, ListItemIcon, ListItemText,
-  Menu,
-  MenuItem, OutlinedInput, Switch,
-  TextField,
-  Toolbar,
-  Tooltip,
-  Typography,
-  useTheme
+  Alert, Avatar, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Drawer,
+  IconButton, Menu, MenuItem, TextField, Toolbar, Tooltip, Typography, useTheme
 } from "@mui/material";
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import {useRouter} from "next/router"
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import MailIcon from '@mui/icons-material/Mail';
 import SendIcon from '@mui/icons-material/Send';
+import axios from "axios";
+import {addData, postData} from "../../firebase";
 
 //components
 import {saveImage} from "../../helpers";
 import {AppBar, DrawerHeader, drawerWidth, MessageBox} from "../../styles/boardAppbar";
-import {cardState, userState} from "../../store";
-import boardState from "../../store/boardState";
-import axios from "axios";
-import {addData, getData, postData} from "../../firebase";
-import {collection, getDocs, updateDoc} from "firebase/firestore";
-import {firebase, storage} from "../../firebase/config";
-import {uploadString, ref} from "firebase/storage";
+import {userState} from "../../store";
+import {collection, getDocs} from "firebase/firestore";
+import {firebase} from "../../firebase/config";
 
 const BoardAppbar = observer(() => {
+  const theme = useTheme();
   const [iconTitle, setIconTitle] = useState('No user');
   const [iconSrc, setIconSrc] = useState('https://google.com');
-  const [open, setOpen] = useState(false);
   const [boardTitle, setBoardTitle] = useState('Без названия');
-  const [anchorEl, setAnchorEl] = useState(null);
-  const openMenu = Boolean(anchorEl);
-  const [title, setTitle] = useState("");
+  const [open, setOpen] = useState(false);
   const [error, setError] = useState(false);
-  const router = useRouter();
-  const theme = useTheme();
   const [openSidebar, setOpenSidebar] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [socket, setSocket] = useState(null);
+  const [title, setTitle] = useState("");
   const [message, setMessage] = useState('');
   const [location, setLocation] = useState('');
   const [chat, setChat] = useState([]);
-  const [socket, setSocket] = useState(null);
+  const openMenu = Boolean(anchorEl);
 
   useEffect(() => {
     // Perform localStorage action
@@ -69,6 +48,7 @@ const BoardAppbar = observer(() => {
     localStorage.removeItem('titleAthena');
   };
 
+  // show message
   const handleDrawerOpen = () => {
     const sock = new WebSocket('ws://localhost:5000/');
     if (!socket) {
@@ -81,7 +61,6 @@ const BoardAppbar = observer(() => {
       };
       setSocket(sock);
     }
-
 
     sock.onmessage = (event) => {
       const msg = JSON.parse(event.data);
@@ -96,10 +75,10 @@ const BoardAppbar = observer(() => {
           break;
       }
     };
-    console.log(chat)
     setOpenSidebar(true);
   };
 
+  // close message
   const handleDrawerClose = () => {
     setOpenSidebar(false);
   };
@@ -131,17 +110,19 @@ const BoardAppbar = observer(() => {
     } else {
       setError(true);
     }
-  }
+  };
 
+  // set message
   const typeMessage = e => {
     setMessage(e.target.value);
-  }
+  };
 
   // change title
   const changeTitle = e => {
     setTitle(e.target.value);
   };
 
+  // send message
   const sendMessage = () => {
     const date = new Date();
     const current = date.getHours() + ':' + date.getMinutes();
@@ -158,6 +139,7 @@ const BoardAppbar = observer(() => {
     }
   };
 
+  // save project
   const getSave = async () => {
     let result = 0;
     const querySnapshot = await getDocs(collection(firebase, 'projects'));
@@ -173,7 +155,14 @@ const BoardAppbar = observer(() => {
         addData(window.location.pathname.replace('/', ''), localStorage.getItem('displayNameAthena'), response.data.owner, boardTitle);
       })
     }
+    closeMenu();
   }
+
+  // save as image .jpeg
+  const getSaveImage = () => {
+    saveImage();
+    closeMenu();
+  };
 
   return (
     <Box sx={{flexGrow: 1}}>
@@ -210,7 +199,7 @@ const BoardAppbar = observer(() => {
             onClose={closeMenu}
           >
             <MenuItem onClick={getSave}>Сохранить</MenuItem>
-            <MenuItem onClick={saveImage}>Сохранить в jpeg</MenuItem>
+            <MenuItem onClick={getSaveImage}>Сохранить в jpeg</MenuItem>
             <MenuItem>
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a href="/">

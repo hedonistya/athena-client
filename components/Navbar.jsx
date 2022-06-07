@@ -5,10 +5,9 @@ import Fuse from "fuse.js";
 import {observer} from "mobx-react-lite";
 
 // components
-import cardState from "../store/cardState";
 import {BoxNavbar, BoxRight} from "../styles/navbar";
 import {getData} from "../firebase";
-import {userState} from "../store";
+import {userState, cardState} from "../store";
 
 const Navbar = observer(() => {
   const [owner, setOwner] = useState('1');

@@ -1,11 +1,11 @@
 import {observer} from "mobx-react-lite";
 import {useEffect, useRef, useState} from "react";
-import boardState from "../../store/boardState";
-import paintState from "../../store/paintState";
-import {Brush, Circle, Eraser, Rectangle, Triangle} from "../../tools";
 import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField} from "@mui/material";
-import userState from "../../store/userState";
 import axios from "axios";
+
+// components
+import {boardState, paintState, userState} from "../../store";
+import {Brush, Circle, Eraser, Rectangle, Triangle} from "../../tools";
 import {authWithGoogleProvider} from "../../firebase";
 
 const Board = observer(() => {
@@ -71,6 +71,7 @@ const Board = observer(() => {
     }
   }, [userState.username]);
 
+  // check response type
   const drawHandler = (msg) => {
     const figure = msg.figure;
     const ctx = boardRef.current.getContext('2d');
@@ -96,15 +97,16 @@ const Board = observer(() => {
       default:
         break;
     }
-  }
+  };
 
+  // get auth
   const connectServer = () => {
     authWithGoogleProvider();
 
     setModal(false);
-  }
+  };
 
-
+  // get action
   const mouseDownHandler = () => {
     axios.post(`http://localhost:5000/image?id=${location}`, {img: boardRef.current.toDataURL()})
       .then(response => console.log(response.data))

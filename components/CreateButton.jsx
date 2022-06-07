@@ -1,10 +1,10 @@
 import AddIcon from '@mui/icons-material/Add';
 import {useRouter} from "next/router";
 import {Fab, Box} from "@mui/material";
+import axios from "axios";
 
 // components
 import {getCode} from "../helpers";
-import axios from "axios";
 
 const CreateButton = () => {
   const router = useRouter();

@@ -1,5 +1,4 @@
 import Tool from "./tool";
-import boardState from "../store/boardState";
 import {paintState} from "../store";
 
 class Triangle extends Tool {

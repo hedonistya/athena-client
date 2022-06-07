@@ -1,4 +1,3 @@
-import Brush from "./brush";
 import Tool from "./tool";
 import {paintState} from "../store";
 
