@@ -49,6 +49,11 @@ const Navbar = observer(() => {
     setOwner(event.target.value);
   };
 
+  const resetFilter = async () => {
+    await getData();
+    await setOwner('1');
+  };
+
   return (
     <>
       <BoxNavbar>
@@ -70,11 +75,8 @@ const Navbar = observer(() => {
               <MenuItem value={3}>Не я</MenuItem>
             </Select>
           </FormControl>
-          <IconButton color="primary" aria-label="Перезагрузить страницу">
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a href="/">
+          <IconButton color="primary" aria-label="Сброс настроек" onClick={resetFilter}>
               <RefreshIcon fontSize="medium"/>
-            </a>
           </IconButton>
         </BoxRight>
       </BoxNavbar>

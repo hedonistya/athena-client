@@ -13,7 +13,7 @@ const CreateButton = () => {
   const getPage = () => {
     const test = getCode();
 
-    axios.post(`http://localhost:5000/users?id=${test}`, {owner: localStorage.getItem('displayNameAthena')})
+    axios.post(`http://45.90.35.46:5000/users?id=${test}`, {owner: localStorage.getItem('displayNameAthena')})
       .then(response => console.log(response.data));
 
     router.push(`/${test}`).then(() => {
